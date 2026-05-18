@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLC CAD Systems — Sales Training Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --mlc-red: #C0272D; --mlc-red-dark: #8f1c21;
+  --dark: #111213; --dark-2: #1a1c1e; --dark-3: #222527; --dark-4: #2e3235;
+  --mid: #44484d; --muted: #7a8085; --light: #c8cdd2; --white: #f5f6f7;
+  --font-display: 'Barlow Condensed', sans-serif; --font-body: 'Barlow', sans-serif;
+}
+body { font-family: var(--font-body); background: var(--dark); color: var(--white); min-height: 100vh; display: flex; flex-direction: column; }
+header { background: var(--dark-2); border-bottom: 1px solid var(--dark-4); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-badge { background: var(--mlc-red); color: #fff; font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 3px; }
+.logo-text { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--light); letter-spacing: 0.08em; text-transform: uppercase; }
+.header-tag { font-size: 12px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.screen { display: none; flex: 1; }
+.screen.active { display: flex; }
+#screen-select { flex-direction: column; padding: 3rem 2rem; max-width: 900px; margin: 0 auto; width: 100%; gap: 2rem; }
+.select-header h1 { font-family: var(--font-display); font-size: 36px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.1; }
+.select-header h1 span { color: var(--mlc-red); }
+.select-header p { font-size: 15px; color: var(--muted); margin-top: 0.5rem; line-height: 1.6; }
+.instructions-bar { background: var(--dark-2); border: 1px solid var(--dark-4); border-left: 3px solid var(--mlc-red); border-radius: 0 8px 8px 0; padding: 1.25rem 1.5rem; }
+.instructions-bar h3 { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mlc-red); margin-bottom: 0.75rem; }
+.instructions-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.step { display: flex; gap: 10px; align-items: flex-start; }
+.step-num { background: var(--mlc-red); color: #fff; font-family: var(--font-display); font-size: 12px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.step p { font-size: 13px; color: var(--light); line-height: 1.5; }
+.scenarios-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; }
+.scenario-card { background: var(--dark-2); border: 1px solid var(--dark-4); border-radius: 10px; padding: 1.75rem; cursor: pointer; transition: border-color 0.2s, transform 0.15s; position: relative; overflow: hidden; }
+.scenario-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--mlc-red); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
+.scenario-card:hover { border-color: var(--mlc-red); transform: translateY(-2px); }
+.scenario-card:hover::before { transform: scaleX(1); }
+.scenario-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mlc-red); margin-bottom: 0.75rem; }
+.scenario-card h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 0.25rem; }
+.scenario-role { font-size: 13px; color: var(--muted); margin-bottom: 1rem; }
+.scenario-desc { font-size: 14px; color: var(--light); line-height: 1.6; margin-bottom: 1.25rem; }
+.scenario-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { background: var(--dark-3); border: 1px solid var(--dark-4); border-radius: 4px; font-size: 11px; color: var(--muted); padding: 3px 8px; letter-spacing: 0.05em; }
+.scenario-arrow { position: absolute; bottom: 1.5rem; right: 1.5rem; color: var(--dark-4); font-size: 20px; transition: color 0.2s, transform 0.2s; }
+.scenario-card:hover .scenario-arrow { color: var(--mlc-red); transform: translateX(3px); }
+#screen-chat { flex-direction: column; }
+.chat-topbar { background: var(--dark-2); border-bottom: 1px solid var(--dark-4); padding: 0 1.5rem; height: 52px; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+.btn-back { background: none; border: 1px solid var(--dark-4); border-radius: 5px; color: var(--muted); font-family: var(--font-body); font-size: 13px; padding: 5px 12px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+.btn-back:hover { border-color: var(--light); color: var(--white); }
+.chat-persona-info { flex: 1; }
+.chat-persona-name { font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
+.chat-persona-sub { font-size: 12px; color: var(--muted); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #3a3a3a; transition: background 0.3s; }
+.status-dot.thinking { background: #f0a500; animation: pulse 1s infinite; }
+.status-dot.listening { background: #2ecc71; animation: pulse 0.6s infinite; }
+.status-dot.ready { background: #2ecc71; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--dark-4); border-radius: 2px; }
+.msg { max-width: 72%; line-height: 1.6; font-size: 14px; animation: fadeUp 0.2s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.msg-customer { align-self: flex-start; }
+.msg-customer .msg-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mlc-red); margin-bottom: 4px; }
+.msg-customer .msg-bubble { background: var(--dark-2); border: 1px solid var(--dark-4); border-radius: 0 10px 10px 10px; padding: 0.875rem 1.1rem; color: var(--white); }
+.msg-user { align-self: flex-end; }
+.msg-user .msg-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; text-align: right; }
+.msg-user .msg-bubble { background: var(--mlc-red); border-radius: 10px 0 10px 10px; padding: 0.875rem 1.1rem; color: #fff; }
+.msg-system { align-self: center; text-align: center; }
+.msg-system .msg-bubble { background: var(--dark-3); border: 1px dashed var(--dark-4); border-radius: 6px; padding: 0.6rem 1rem; font-size: 12px; color: var(--muted); font-style: italic; }
+.typing-indicator { align-self: flex-start; display: none; }
+.typing-indicator.active { display: block; }
+.typing-indicator .msg-bubble { background: var(--dark-2); border: 1px solid var(--dark-4); border-radius: 0 10px 10px 10px; padding: 0.875rem 1.1rem; display: flex; gap: 4px; align-items: center; }
+.typing-dot { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+.chat-inputbar { background: var(--dark-2); border-top: 1px solid var(--dark-4); padding: 1rem 1.5rem; display: flex; align-items: flex-end; gap: 0.75rem; flex-shrink: 0; }
+.input-wrap { flex: 1; background: var(--dark-3); border: 1px solid var(--dark-4); border-radius: 8px; display: flex; align-items: flex-end; gap: 0.5rem; padding: 0.75rem 1rem; transition: border-color 0.2s; }
+.input-wrap:focus-within { border-color: var(--mlc-red); }
+.input-wrap textarea { flex: 1; background: none; border: none; color: var(--white); font-family: var(--font-body); font-size: 14px; resize: none; outline: none; min-height: 22px; max-height: 120px; line-height: 1.5; }
+.input-wrap textarea::placeholder { color: var(--mid); }
+.btn-mic { background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; transition: color 0.2s; flex-shrink: 0; display: flex; align-items: center; }
+.btn-mic:hover { color: var(--white); }
+.btn-mic.recording { color: var(--mlc-red); animation: pulse 0.8s infinite; }
+.btn-send { background: var(--mlc-red); border: none; border-radius: 7px; color: #fff; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+.btn-send:hover { background: var(--mlc-red-dark); }
+.btn-send:disabled { background: var(--dark-4); cursor: not-allowed; }
+.mic-hint { font-size: 12px; color: var(--mid); text-align: center; padding: 0 1.5rem 0.5rem; }
+.mic-hint span { color: var(--mlc-red); }
+.voice-status { background: var(--dark-3); border-top: 1px solid var(--dark-4); padding: 0.5rem 1.5rem; font-size: 12px; color: var(--muted); text-align: center; display: none; }
+.voice-status.active { display: block; }
+.voice-status.listening-state { color: #2ecc71; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">MLC</span>
+    <span class="logo-text">CAD Systems</span>
+  </div>
+  <span class="header-tag">Sales Training Simulator</span>
+</header>
+
+<div id="screen-select" class="screen active">
+  <div class="select-header">
+    <h1>Choose Your <span>Training Scenario</span></h1>
+    <p>Select a customer persona below to begin your practice session. Each scenario is based on real prospect profiles from the field.</p>
+  </div>
+  <div class="instructions-bar">
+    <h3>How to Run Your Session</h3>
+    <div class="instructions-steps">
+      <div class="step"><div class="step-num">1</div><p>Click a scenario below. Read the prospect brief before you begin.</p></div>
+      <div class="step"><div class="step-num">2</div><p>Hit the <strong>mic button</strong> and speak your opening line — treat it like a real call. Use Chrome or Edge for best results.</p></div>
+      <div class="step"><div class="step-num">3</div><p>Ask discovery questions before pitching. The AI responds with real objections and personality.</p></div>
+      <div class="step"><div class="step-num">4</div><p>Say <strong>"End session"</strong> when done. The AI breaks character and gives you honest coaching feedback.</p></div>
+    </div>
+  </div>
+  <div class="scenarios-grid">
+    <div class="scenario-card" onclick="startScenario('marcus')">
+      <div class="scenario-tag">Scenario 1 — Greenfield</div>
+      <h2>Marcus Webb</h2>
+      <div class="scenario-role">Engineering Manager · Pinnacle Precision Products</div>
+      <p class="scenario-desc">A 7-person shop living on shared drives and chaos. No PDM experience, no IT person. Marcus is skeptical of vendors and protective of his team's time — but he has a real problem that's costing him clients.</p>
+      <div class="scenario-tags">
+        <span class="tag">No PDM experience</span>
+        <span class="tag">No internal IT</span>
+        <span class="tag">OneDrive pain</span>
+        <span class="tag">Budget-conscious</span>
+      </div>
+      <div class="scenario-arrow">→</div>
+    </div>
+    <div class="scenario-card" onclick="startScenario('dana')">
+      <div class="scenario-tag">Scenario 2 — Frustrated Self-Hoster</div>
+      <h2>Dana Kowalski</h2>
+      <div class="scenario-role">Engineering Manager · Vertex Dynamics</div>
+      <p class="scenario-desc">22 engineers across Dallas and Denver, running PDM Pro on aging in-house hardware. Had a 14-hour outage 6 months ago. Technically savvy, actively evaluating options — and she's already run your latency test.</p>
+      <div class="scenario-tags">
+        <span class="tag">PDM Pro self-hosted</span>
+        <span class="tag">Outage history</span>
+        <span class="tag">Multi-site</span>
+        <span class="tag">Technical buyer</span>
+      </div>
+      <div class="scenario-arrow">→</div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-chat" class="screen">
+  <div class="chat-topbar">
+    <button class="btn-back" onclick="goBack()">← Scenarios</button>
+    <div class="chat-persona-info">
+      <div class="chat-persona-name" id="chat-name"></div>
+      <div class="chat-persona-sub" id="chat-sub"></div>
+    </div>
+    <div class="status-dot ready" id="status-dot"></div>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="typing-indicator" id="typing-indicator">
+      <div class="msg-bubble">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
+    </div>
+  </div>
+  <div id="voice-status" class="voice-status"></div>
+  <div class="mic-hint">Press the <span>mic button</span> to speak, or type below. Say <strong>"End session"</strong> for coaching feedback.</div>
+  <div class="chat-inputbar">
+    <div class="input-wrap">
+      <textarea id="chat-input" rows="1" placeholder="Type your response, or use the mic..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="btn-mic" id="btn-mic" onclick="toggleMic()" title="Click to speak">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+    </div>
+    <button class="btn-send" id="btn-send" onclick="sendMessage()" title="Send">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const API_KEY = 'AIzaSyAjg4ufgNNwK-nMRnVS0oRAcMYl2bWw1l8';
+let currentScenario = null, conversationHistory = [], isRecording = false, recognition = null, isThinking = false;
+
+const PERSONAS = {
+  marcus: {
+    name: 'Marcus Webb', sub: 'Pinnacle Precision Products · Greenfield Prospect',
+    system: `You are Marcus Webb, Engineering Manager at Pinnacle Precision Products, a 7-engineer contract design firm in Austin, TX using SOLIDWORKS.
+
+SITUATION: Your team uses OneDrive which has become a disaster — engineers overwrite files, version history is unreliable, a contractor nearly cost you a client last month. No dedicated IT person. Your boss said "figure out PDM" with no budget guidance. You've heard of SOLIDWORKS PDM but don't fully understand it.
+
+PERSONALITY: Direct, a little blunt. Skeptical of vendors — you've been burned before. Protective of your team's productivity. Vaguely distrustful of "the cloud." Budget-conscious but will pay for something that works.
+
+OBJECTIONS (raise naturally, one at a time as conversation flows):
+- "We already use OneDrive. Why isn't that good enough?"
+- "What happens if your server goes down? We can't afford downtime."
+- "Who manages this day-to-day? I don't have time to babysit a server."
+- "How much does this actually cost? Give me a real number."
+- "We're a small shop. Is this overkill for 7 people?"
+
+KEY FACTS (share only when rep asks good discovery questions):
+- 7 engineers + 1-2 contractors; one engineer remote 2 days/week
+- SOLIDWORKS Professional network license through MLC CAD
+- No on-site server beyond a basic NAS; last hardware refresh 4 years ago
+- Owner open to $8-10K/year with clear ROI
+
+RULES: Keep every response to 2-4 sentences max — like a real phone call. Start cold, warm up when rep listens well. If rep pitches before asking questions: "Look, can I tell you what our actual problem is first?" Soften noticeably when rep explains 24/7 monitoring and managed support. Don't agree to next steps unless rep addresses 3+ objections and explicitly asks.
+
+PRODUCT FACTS (react authentically): MLC: $500 setup + $6,400/yr, 16GB RAM, Intel Xeon, 1TB storage, daily 30-day backups, 99% uptime, 24/7 N-Sight monitoring, AI-driven EDR, Juniper firewall/VPN. Site-to-Site or Client VPN connectivity. SOLIDWORKS upgrades included. Competitors: EpiGrid ~$9,096/yr (8GB RAM, 7-day backups), GoEngineer ~$10K/yr, AWS $9-14K/yr, Azure $10-15K/yr.
+
+If user says "End session": break character, give honest coaching — 2-3 strengths, 1-2 improvements, referencing specific moments.`
+  },
+  dana: {
+    name: 'Dana Kowalski', sub: 'Vertex Dynamics · Frustrated Self-Hoster',
+    system: `You are Dana Kowalski, Engineering Manager at Vertex Dynamics — 22 engineers across Dallas (18) and Denver (4). You've self-hosted SOLIDWORKS PDM Professional for 3 years.
+
+SITUATION: Your 5-year-old Dell PowerEdge server is aging. Six months ago: 14-hour outage from a failed hard drive — engineering was dead. VP of Operations still brings it up. Your IT director left 18 months ago; the new contractor doesn't know PDM and has broken workflows. Denver VPN latency is 60-90ms and inconsistent. You're actively evaluating: new hardware, MLC managed, or cloud.
+
+PERSONALITY: Technical — you know VPNs, latency, SOC 2. Talk to you like an adult. Frustrated but measured. You hate marketing language — "enterprise-grade" without specifics gets pushback. You've managed this yourself 3 years and need to feel like you're making a smart decision.
+
+OBJECTIONS (raise naturally):
+- "We've been managing fine. Why hand that control to someone else?"
+- "What's your actual uptime? Real numbers, not marketing."
+- "Denver has latency issues now. How do I know this won't make it worse?"
+- "Who controls the timing when I need to upgrade SOLIDWORKS?"
+- "What if MLC goes out of business or changes pricing? I'm locked in."
+- "I have 3 years of vault data. How does migration work?"
+
+KEY FACTS (share only when asked good questions):
+- PDM Pro + SOLIDWORKS Manage + Visualize server
+- Current server: 5yr old, 32GB RAM, 4TB RAID; replacement quote $12-15K
+- IT contractor cost for server: ~$4K/yr
+- Denver latency: 60-90ms inconsistent
+- You already ran MLC's latency test to Dallas: 38ms steady. You were impressed. You haven't mentioned it.
+
+RULES: Keep every response to 2-4 sentences max. Open with: "I'll be honest — I already know what you offer. What I need is the stuff not on your website." Give real answers to good discovery questions. If rep mentions the latency tool, reveal your 38ms result and watch how they handle it. The "single vendor for CAD + IT" concept is compelling to you — surface it if rep is good. Don't agree to next steps without addressing migration AND version control.
+
+PRODUCT FACTS (react authentically): MLC: $500 setup + $6,400/yr base (22 users needs add-ons — probe pricing). 16GB RAM, Intel Xeon, 1TB, 30-day backups, 99% uptime, 24/7 monitoring, EDR security. Data centers: Dallas TX and Tampa FL. MLC coordinates simultaneous SOLIDWORKS upgrades — no version mismatches. Your real cost: $12-15K hardware + $4K/yr IT = $16-19K year 1 vs MLC's significantly lower total.
+
+If user says "End session": break character, give honest coaching — 2-3 strengths, 1-2 improvements, referencing specific moments.`
+  }
+};
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function startScenario(id) {
+  currentScenario = PERSONAS[id];
+  conversationHistory = [];
+  document.getElementById('chat-name').textContent = currentScenario.name;
+  document.getElementById('chat-sub').textContent = currentScenario.sub;
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '<div class="typing-indicator active" id="typing-indicator"><div class="msg-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  showScreen('chat');
+  addSystemMessage('Session started. You are the MLC salesperson. The prospect is on the line — open the call naturally.');
+  document.getElementById('chat-input').focus();
+}
+
+function goBack() {
+  if (isRecording) stopRecognition();
+  showScreen('select');
+}
+
+function addMessage(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.innerHTML = '<div class="msg-label">' + (role === 'customer' ? currentScenario.name.split(' ')[0] : 'You') + '</div><div class="msg-bubble">' + text.replace(/\n/g, '<br>') + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addSystemMessage(text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-system';
+  div.innerHTML = '<div class="msg-bubble">' + text + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function setThinking(active) {
+  isThinking = active;
+  const dot = document.getElementById('status-dot');
+  const ind = document.getElementById('typing-indicator');
+  const btn = document.getElementById('btn-send');
+  dot.className = 'status-dot ' + (active ? 'thinking' : 'ready');
+  if (ind) ind.className = 'typing-indicator' + (active ? ' active' : '');
+  btn.disabled = active;
+  if (!active) document.getElementById('chat-messages').scrollTop = 99999;
+}
+
+async function sendMessage(textOverride) {
+  const input = document.getElementById('chat-input');
+  const text = (textOverride || input.value).trim();
+  if (!text || isThinking) return;
+  input.value = ''; autoResize(input);
+  addMessage('user', text);
+  conversationHistory.push({ role: 'user', parts: [{ text }] });
+  setThinking(true);
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + API_KEY, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system_instruction: { parts: [{ text: currentScenario.system }] }, contents: conversationHistory, generationConfig: { temperature: 0.85, maxOutputTokens: 400 } })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API error'); }
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '...';
+    conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
+    setThinking(false);
+    addMessage('customer', reply);
+  } catch (err) {
+    setThinking(false);
+    addSystemMessage('Error: ' + err.message + ' — please try again.');
+  }
+}
+
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function toggleMic() { isRecording ? stopRecognition() : startRecognition(); }
+
+function startRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { addSystemMessage('Voice input requires Chrome or Edge. Please switch browsers or type your response.'); return; }
+  recognition = new SR();
+  recognition.lang = 'en-US'; recognition.continuous = false; recognition.interimResults = true;
+  const btn = document.getElementById('btn-mic'), input = document.getElementById('chat-input');
+  const vs = document.getElementById('voice-status'), dot = document.getElementById('status-dot');
+  recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); dot.className = 'status-dot listening'; vs.textContent = '🎙 Listening... speak now'; vs.className = 'voice-status active listening-state'; input.placeholder = 'Listening...'; };
+  recognition.onresult = (e) => { let interim = '', final = ''; for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) final += e.results[i][0].transcript; else interim += e.results[i][0].transcript; } input.value = final || interim; autoResize(input); if (final) { vs.textContent = '✓ Got it — sending...'; vs.className = 'voice-status active'; } };
+  recognition.onerror = (e) => { stopRecognition(); if (e.error !== 'no-speech') addSystemMessage('Mic error: ' + e.error + '. Check browser microphone permissions.'); };
+  recognition.onend = () => {
+    setTimeout(() => {
+      const text = input.value.trim(); stopRecognition(); if (text) sendMessage(text);
+    }, 1500);
+  };
+  recognition.start();
+}
+
+function stopRecognition() {
+  if (recognition) recognition.stop();
+  isRecording = false;
+  document.getElementById('btn-mic').classList.remove('recording');
+  document.getElementById('status-dot').className = 'status-dot ' + (isThinking ? 'thinking' : 'ready');
+  document.getElementById('voice-status').className = 'voice-status';
+  document.getElementById('chat-input').placeholder = 'Type your response, or use the mic...';
+}
+</script>
+</body>
+</html>
