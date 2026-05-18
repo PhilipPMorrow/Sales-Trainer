@@ -165,7 +165,7 @@ header { background: var(--dark-2); border-bottom: 1px solid var(--dark-4); padd
     </div>
   </div>
   <div id="voice-status" class="voice-status"></div>
-  <div class="mic-hint">Press the <span>mic button</span> to speak, or type below. Say <strong>"End session"</strong> for coaching feedback.</div>
+  <div class="mic-hint">Press the <span>mic button</span> to speak, then hit <span>Send</span> when ready. Say <strong>"End session"</strong> for coaching feedback.</div>
   <div class="chat-inputbar">
     <div class="input-wrap">
       <textarea id="chat-input" rows="1" placeholder="Type your response, or use the mic..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
@@ -339,9 +339,7 @@ function startRecognition() {
   recognition.onresult = (e) => { let interim = '', final = ''; for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) final += e.results[i][0].transcript; else interim += e.results[i][0].transcript; } input.value = final || interim; autoResize(input); if (final) { vs.textContent = '✓ Got it — sending...'; vs.className = 'voice-status active'; } };
   recognition.onerror = (e) => { stopRecognition(); if (e.error !== 'no-speech') addSystemMessage('Mic error: ' + e.error + '. Check browser microphone permissions.'); };
   recognition.onend = () => {
-    setTimeout(() => {
-      const text = input.value.trim(); stopRecognition(); if (text) sendMessage(text);
-    }, 1500);
+    stopRecognition();
   };
   recognition.start();
 }
