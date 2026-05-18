@@ -186,7 +186,7 @@ header { background: var(--dark-2); border-bottom: 1px solid var(--dark-4); padd
 </div>
 
 <script>
-const API_KEY = 'AIzaSyAjg4ufgNNwK-nMRnVS0oRAcMYl2bWw1l8';
+// API key is stored securely in Netlify environment variables
 let currentScenario = null, conversationHistory = [], isRecording = false, recognition = null, isThinking = false;
 
 const PERSONAS = {
@@ -308,7 +308,7 @@ async function sendMessage(textOverride) {
   conversationHistory.push({ role: 'user', parts: [{ text }] });
   setThinking(true);
   try {
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + API_KEY, {
+    const res = await fetch('/.netlify/functions/gemini', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system_instruction: { parts: [{ text: currentScenario.system }] }, contents: conversationHistory, generationConfig: { temperature: 0.85, maxOutputTokens: 400 } })
     });
